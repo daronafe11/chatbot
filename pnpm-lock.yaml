@@ -17,6 +17,9 @@ importers:
       '@ai-sdk/react':
         specifier: 4.0.16
         version: 4.0.16(react@19.2.7)(zod@4.4.3)
+      '@browser-ai/core':
+        specifier: ^3.0.2
+        version: 3.0.2(ai@7.0.15(zod@4.4.3))
       '@codemirror/lang-python':
         specifier: ^6.2.1
         version: 6.2.1
@@ -391,6 +394,11 @@ packages:
 
   '@braintree/sanitize-url@7.1.2':
     resolution: {integrity: sha512-jigsZK+sMF/cuiB7sERuo9V7N9jx+dhmHHnQyDSVdpZwVutaBu7WvNYqMDLSgFgfB30n452TP3vjDAvFC973mA==}
+
+  '@browser-ai/core@3.0.2':
+    resolution: {integrity: sha512-dfcqL//GaPGxkibdeQSLQQimG7A/IdcBOwz8lAFCJh0X0PzKVkz3g13F2ElYaUryBL+9Rpt7qrQsEfQvzNxUVQ==}
+    peerDependencies:
+      ai: ^7.0.0
 
   '@chevrotain/cst-dts-gen@11.1.1':
     resolution: {integrity: sha512-fRHyv6/f542qQqiRGalrfJl/evD39mAvbJLCekPazhiextEatq1Jx1K/i9gSd5NNO0ds03ek0Cbo/4uVKmOBcw==}
@@ -1163,6 +1171,9 @@ packages:
 
   '@marijn/find-cluster-break@1.0.2':
     resolution: {integrity: sha512-l0h88YhZFyKdXIFNfSWpyjStDjGHwZ/U7iobcK1cQQD8sejsONdQtTVU+1wVN1PBw40PiiHB1vA5S7VTfQiP9g==}
+
+  '@mediapipe/tasks-text@0.10.35':
+    resolution: {integrity: sha512-BlRWXZAHakqtAos8hNgSU0jy4mh60R9ewzwckS3q2nV7Q/7L65otCtoDrgslRBhlfbElfcHbHQXKRahlMRCf4Q==}
 
   '@mermaid-js/parser@1.0.0':
     resolution: {integrity: sha512-vvK0Hi/VWndxoh03Mmz6wa1KDriSPjS2XMZL/1l19HFwygiObEEoEwSDxOqyLzzAI6J2PU3261JjTMTO7x+BPw==}
@@ -4851,6 +4862,11 @@ snapshots:
 
   '@braintree/sanitize-url@7.1.2': {}
 
+  '@browser-ai/core@3.0.2(ai@7.0.15(zod@4.4.3))':
+    dependencies:
+      '@mediapipe/tasks-text': 0.10.35
+      ai: 7.0.15(zod@4.4.3)
+
   '@chevrotain/cst-dts-gen@11.1.1':
     dependencies:
       '@chevrotain/gast': 11.1.1
@@ -5389,6 +5405,8 @@ snapshots:
       '@lezer/lr': 1.4.2
 
   '@marijn/find-cluster-break@1.0.2': {}
+
+  '@mediapipe/tasks-text@0.10.35': {}
 
   '@mermaid-js/parser@1.0.0':
     dependencies:

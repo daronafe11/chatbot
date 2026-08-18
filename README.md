@@ -46,6 +46,12 @@ This template uses the [Vercel AI Gateway](https://vercel.com/docs/ai-gateway) t
 
 With the [AI SDK](https://ai-sdk.dev/docs/introduction), you can also switch to direct LLM providers like [OpenAI](https://openai.com), [Anthropic](https://anthropic.com), [Cohere](https://cohere.com/), and [many more](https://ai-sdk.dev/providers/ai-sdk-providers) with just a few lines of code.
 
+### On-device model
+
+A **Built-in AI** entry appears in the model selector on browsers that ship the [Chrome built-in AI APIs](https://developer.chrome.com/docs/ai/built-in), backed by the [`@browser-ai/core`](https://browser-ai.dev/) provider. It generates inside the tab, so no prompt reaches the gateway and no key is needed. The exchange is posted to `/api/chat/local` afterwards so the chat still shows up in your history.
+
+The on-device path is deliberately narrow: text only, no tools, no artifacts, and no resumable streams, since none of that is reachable without a server round-trip. Everything else in the selector is unchanged.
+
 ## Deploy Your Own
 
 You can deploy your own version of Chatbot to Vercel with one click:

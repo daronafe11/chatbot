@@ -22,6 +22,12 @@ import { getChatHistoryPaginationKey } from "@/components/chat/sidebar-history";
 import { toast } from "@/components/chat/toast";
 import type { VisibilityType } from "@/components/chat/visibility-selector";
 import { useAutoResume } from "@/hooks/use-auto-resume";
+import { isBrowserChatModel } from "@/lib/ai/browser-models";
+import {
+  BrowserAIChatTransport,
+  ModelAwareChatTransport,
+  persistBrowserExchange,
+} from "@/lib/ai/browser-transport";
 import { DEFAULT_CHAT_MODEL } from "@/lib/ai/models";
 import type { Vote } from "@/lib/db/schema";
 import { ChatbotError } from "@/lib/errors";
@@ -129,7 +135,20 @@ export function ActiveChatProvider({ children }: { children: ReactNode }) {
         });
       }
     },
-    onFinish: () => {
+    onFinish: async ({ message, messages: finishedMessages }) => {
+      if (isBrowserChatModel(currentModelIdRef.current)) {
+        await persistBrowserExchange({
+          assistantMessage: message,
+          chatId,
+          messages: finishedMessages,
+          visibility,
+        }).catch(() => {
+          toast({
+            description: "Could not save this on-device chat.",
+            type: "error",
+          });
+        });
+      }
       mutate(unstable_serialize(getChatHistoryPaginationKey));
     },
     sendAutomaticallyWhen: ({ messages: currentMessages }) => {
@@ -144,34 +163,39 @@ export function ActiveChatProvider({ children }: { children: ReactNode }) {
         ) ?? false
       );
     },
-    transport: new DefaultChatTransport({
-      api: `${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/api/chat`,
-      fetch: fetchWithErrorHandlers,
-      prepareSendMessagesRequest(request) {
-        const lastMessage = request.messages.at(-1);
-        const isToolApprovalContinuation =
-          lastMessage?.role !== "user" ||
-          request.messages.some((msg) =>
-            msg.parts?.some((part) => {
-              const { state } = part as { state?: string };
-              return (
-                state === "approval-responded" || state === "output-denied"
-              );
-            })
-          );
+    transport: new ModelAwareChatTransport({
+      browser: new BrowserAIChatTransport(),
+      isBrowserModelSelected: () =>
+        isBrowserChatModel(currentModelIdRef.current),
+      server: new DefaultChatTransport({
+        api: `${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/api/chat`,
+        fetch: fetchWithErrorHandlers,
+        prepareSendMessagesRequest(request) {
+          const lastMessage = request.messages.at(-1);
+          const isToolApprovalContinuation =
+            lastMessage?.role !== "user" ||
+            request.messages.some((msg) =>
+              msg.parts?.some((part) => {
+                const { state } = part as { state?: string };
+                return (
+                  state === "approval-responded" || state === "output-denied"
+                );
+              })
+            );
 
-        return {
-          body: {
-            id: request.id,
-            ...(isToolApprovalContinuation
-              ? { messages: request.messages }
-              : { message: lastMessage }),
-            selectedChatModel: currentModelIdRef.current,
-            selectedVisibilityType: visibility,
-            ...request.body,
-          },
-        };
-      },
+          return {
+            body: {
+              id: request.id,
+              ...(isToolApprovalContinuation
+                ? { messages: request.messages }
+                : { message: lastMessage }),
+              selectedChatModel: currentModelIdRef.current,
+              selectedVisibilityType: visibility,
+              ...request.body,
+            },
+          };
+        },
+      }),
     }),
   });
 

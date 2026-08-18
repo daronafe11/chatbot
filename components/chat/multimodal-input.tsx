@@ -7,6 +7,7 @@ import {
   ArrowUpIcon,
   BrainIcon,
   EyeIcon,
+  LaptopIcon,
   LockIcon,
   WrenchIcon,
 } from "lucide-react";
@@ -37,6 +38,8 @@ import {
   ModelSelectorName,
   ModelSelectorTrigger,
 } from "@/components/ai-elements/model-selector";
+import { useBrowserAISupport } from "@/hooks/use-browser-ai-support";
+import { browserChatModel, isBrowserChatModel } from "@/lib/ai/browser-models";
 import {
   type ChatModel,
   chatModels,
@@ -741,7 +744,11 @@ function ModelSelectorOption({
       onSelect={handleSelect}
       value={model.id}
     >
-      <ModelSelectorLogo provider={logoProvider} />
+      {isBrowserChatModel(model.id) ? (
+        <LaptopIcon className="size-4" />
+      ) : (
+        <ModelSelectorLogo provider={logoProvider} />
+      )}
       <ModelSelectorName>{model.name}</ModelSelectorName>
       <div className="ml-auto flex items-center gap-2 text-foreground/70">
         {capabilities?.[model.id]?.tools
@@ -800,7 +807,13 @@ function PureModelSelectorCompact({
   const capabilities: Record<string, ModelCapabilities> | undefined =
     modelsData?.capabilities ?? modelsData;
   const dynamicModels: ChatModel[] | undefined = modelsData?.models;
-  const activeModels = dynamicModels ?? chatModels;
+  const supportsBrowserAI = useBrowserAISupport();
+  const availableModels = supportsBrowserAI
+    ? [browserChatModel, ...chatModels]
+    : chatModels;
+  const activeModels = dynamicModels
+    ? [...availableModels, ...dynamicModels]
+    : availableModels;
 
   const selectedModel =
     activeModels.find((m: ChatModel) => m.id === selectedModelId) ??
@@ -816,7 +829,11 @@ function PureModelSelectorCompact({
           data-testid="model-selector"
           variant="ghost"
         >
-          {provider ? <ModelSelectorLogo provider={provider} /> : null}
+          {isBrowserChatModel(selectedModel.id) ? (
+            <LaptopIcon className="size-4" />
+          ) : provider ? (
+            <ModelSelectorLogo provider={provider} />
+          ) : null}
           <ModelSelectorName>{selectedModel.name}</ModelSelectorName>
         </Button>
       </ModelSelectorTrigger>
@@ -824,13 +841,13 @@ function PureModelSelectorCompact({
         <ModelSelectorInput placeholder="Search models..." />
         <ModelSelectorList>
           {(() => {
-            const curatedIds = new Set(chatModels.map((m) => m.id));
+            const curatedIds = new Set(availableModels.map((m) => m.id));
             const allModels = dynamicModels
               ? [
-                  ...chatModels,
+                  ...availableModels,
                   ...dynamicModels.filter((m) => !curatedIds.has(m.id)),
                 ]
-              : chatModels;
+              : availableModels;
 
             const grouped: Record<
               string,
